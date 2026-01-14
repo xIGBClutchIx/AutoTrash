@@ -1,0 +1,17 @@
+{
+  "Group": "me.clutchy.hytale",
+  "Name": "HytaleCore",
+  "Version": "$version",
+  "Main": "me.clutchy.hytale.main.HytaleCorePlugin",
+  "ServerVersion": "*",
+  "Dependencies": {
+    "Hytale:I18nModule": "*"
+  },
+  "Authors": [
+    {
+      "Name": "Cameron Weaver (Clutch)",
+      "Email": "lockerzmodding@gmail.com",
+      "Url": "https://clutchy.me"
+    }
+  ]
+}
