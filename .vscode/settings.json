@@ -1,0 +1,21 @@
+{
+    "files.exclude": {
+        "**/build": true,
+        "**/.gradle": true,
+        "**/bin": true,
+        "**/gradle": true,
+        "gradlew": true,
+        "gradlew.bat": true
+    },
+    "search.exclude": {
+        "**/build": true,
+        "**/.gradle": true,
+        "**/bin": true,
+        "**/gradle": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "build.gradle": "gradle.properties, settings.gradle"
+    },
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable"
+}

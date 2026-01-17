@@ -59,6 +59,11 @@ Lint/format:
 - Keep the jar path relative to repo root.
 - Avoid adding Maven coordinates for the server SDK unless requested.
 
+## Libraries and Sources
+- Runtime SDK jars live under `libraries/` (notably `libraries/HytaleServer.jar`).
+- Source jar is `libraries/HytaleServer-Source.jar` and can be inspected with `jar tf` or `jar xf` when you need API details.
+- If you extract sources from the jar, do it from the repo root and remove the extracted folders afterward (e.g. `rm -rf com`).
+
 ## Manifest Conventions
 - `manifest.json` lives in `src/main/resources`.
 - `Main` must match the fully qualified plugin class.

@@ -6,9 +6,9 @@
 *.log
 .idea/
 *.iml
-.vscode/
 .DS_Store
 .classpath
 .project
 .settings/
 libraries/
+run/

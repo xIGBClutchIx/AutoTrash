@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Hytale Server",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.hypixel.hytale.Main",
+      "projectName": "AutoTrash",
+      "cwd": "${workspaceFolder}/run",
+      "args": "--allow-op --assets=${env:HOME}/.config/Hytale/install/release/package/game/latest/Assets.zip",
+      "preLaunchTask": "Build"
+    }
+  ]
+}
