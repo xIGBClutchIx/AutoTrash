@@ -8,7 +8,7 @@ plugins {
 
 // Project identity used by manifest generation and publishing metadata.
 group = 'me.clutchy.hytale'
-version = '1.0.0'
+version = '1.0.1'
 
 // Resolve plugins and formatting dependencies.
 repositories {
@@ -140,55 +140,14 @@ tasks.named('jar') {
     from('LICENSE')
 }
 
-// Special-case: running runHytale alone should not trigger a full build.
-def runHytaleOnly = gradle.startParameter.taskNames.size() == 1 && gradle.startParameter.taskNames.first().endsWith('runHytale')
-
-if (runHytaleOnly) {
-    def disabledTasks = [
-            'build',
-            'check',
-            'assemble',
-            'classes',
-            'compileJava',
-            'processResources',
-            'jar',
-            'javadoc',
-            'javadocJar',
-            'sourcesJar',
-            'compileTestJava',
-            'processTestResources',
-            'testClasses',
-            'test',
-            'spotlessJava',
-            'spotlessJavaCheck',
-            'spotlessCheck',
-            'spotlessInternalRegisterDependencies'
-    ]
-
-    tasks.matching { task ->
-        task.name in disabledTasks
-    }.configureEach {
-        enabled = false
-    }
-}
-
-// Placeholder jar used only for runHytale provisioning without building sources.
-def placeholderModJar = tasks.register('prepareHytaleModJar', Jar) {
-    archiveBaseName = 'AutoTrash'
-    archiveVersion = version.toString()
-    destinationDirectory = layout.buildDirectory.dir('libs')
-}
 
 // Configure runHytale to use either the placeholder or the real jar.
 gradle.projectsEvaluated {
     tasks.named('runHytale') {
         dependsOn.clear()
-        if (runHytaleOnly) {
-            dependsOn(placeholderModJar)
-            modJar.set(placeholderModJar.flatMap { it.archiveFile })
-        } else {
-            dependsOn(tasks.named('jar'))
-            modJar.set(tasks.named('jar').flatMap { it.archiveFile })
-        }
+        outputs.upToDateWhen { false }
+        outputs.cacheIf { false }
+        dependsOn(tasks.named('build'))
+        modJar.set(tasks.named('jar').flatMap { it.archiveFile })
     }
 }

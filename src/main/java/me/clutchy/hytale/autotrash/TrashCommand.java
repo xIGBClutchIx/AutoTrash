@@ -221,9 +221,9 @@ public final class TrashCommand extends CommandBase {
                 if (itemId == null || itemId.isBlank()) {
                     continue;
                 }
-                String rowSelector = "#ItemList" + "[" + index + "]";
-                commandBuilder.append("#ItemList", "Pages/BasicTextButton.ui");
-                commandBuilder.set(rowSelector + ".Text", getItemDisplayName(itemId));
+                String rowSelector = "#ItemGrid" + "[" + index + "]";
+                commandBuilder.append("#ItemGrid", "Pages/AutoTrashItemSlotRow.ui");
+                commandBuilder.set(rowSelector + " #ItemSlot.ItemId", itemId);
                 index++;
             }
         }
@@ -289,7 +289,7 @@ public final class TrashCommand extends CommandBase {
                 if (itemId == null || itemId.isBlank()) {
                     continue;
                 }
-                String rowSelector = "#ItemList[" + index + "]";
+                String rowSelector = "#ItemGrid[" + index + "]";
                 eventBuilder.addEventBinding(CustomUIEventBindingType.Activating, rowSelector,
                         EventData.of(PageEventData.KEY_ACTION, PageEventData.ACTION_REMOVE_EXACT).append(PageEventData.KEY_ITEM, itemId), false);
                 index++;

@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build",
+      "label": "Run Hytale",
       "type": "shell",
-      "command": "./gradlew build",
+      "command": "./gradlew runHytale --rerun-tasks",
       "group": "build",
       "problemMatcher": []
     }

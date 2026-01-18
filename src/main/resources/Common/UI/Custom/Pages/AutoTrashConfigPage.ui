@@ -73,7 +73,7 @@ $C.@DecoratedContainer {
       }
 
       Label #ItemHelp {
-        Text: "Hold an item and press add. Click a row to remove.";
+        Text: "Hold an item and press add. Click a slot to remove.";
         Style: (FontSize: 12, TextColor: #6e7da1);
         Anchor: (Bottom: 8);
       }
@@ -92,6 +92,11 @@ $C.@DecoratedContainer {
         LayoutMode: TopScrolling;
         ScrollbarStyle: $C.@DefaultScrollbarStyle;
         Anchor: (Height: 320);
+        Padding: (Top: 8, Left: 8, Right: 8);
+
+        Group #ItemGrid {
+          LayoutMode: LeftCenterWrap;
+        }
       }
     }
   }

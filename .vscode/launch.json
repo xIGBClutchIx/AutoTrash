@@ -5,11 +5,14 @@
       "name": "Run Hytale Server",
       "type": "java",
       "request": "launch",
-      "mainClass": "com.hypixel.hytale.Main",
-      "projectName": "AutoTrash",
-      "cwd": "${workspaceFolder}/run",
-      "args": "--allow-op --assets=${env:HOME}/.config/Hytale/install/release/package/game/latest/Assets.zip",
-      "preLaunchTask": "Build"
+      "mainClass": "org.gradle.wrapper.GradleWrapperMain",
+      "classPaths": [
+        "${workspaceFolder}/gradle/wrapper/gradle-wrapper.jar"
+      ],
+      "args": "runHytale",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "noDebug": true
     }
   ]
 }

@@ -1,0 +1,25 @@
+$C = "../Common.ui";
+
+ItemSlotButton {
+  Anchor: (Width: 72, Height: 72);
+  Padding: 2;
+  Style: (
+    Default: (Background: #1c2835),
+    Hovered: (Background: #2a3444),
+    Pressed: (Background: #222c3a),
+    Disabled: (Background: #161a20),
+    Sounds: $C.@ButtonSounds,
+  );
+
+  Group {
+    Anchor: (Full: 0);
+    Background: #0f141b;
+    Padding: 2;
+
+    ItemSlot #ItemSlot {
+      Anchor: (Full: 0);
+      ShowQualityBackground: true;
+      ShowQuantity: false;
+    }
+  }
+}
