@@ -28,6 +28,11 @@ Click any item in your trash list to remove it.
 ![AutoTrash notification](docs/images/preview/notification.png)
 </details>
 
+## Links
+
+- CurseForge: https://www.curseforge.com/hytale/mods/auto-trash
+- Modtale: https://modtale.net/mod/auto-trash
+
 ## Installation
 
 1. Build with `./gradlew build`
