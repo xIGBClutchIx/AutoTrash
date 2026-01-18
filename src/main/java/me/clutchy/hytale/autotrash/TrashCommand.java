@@ -166,8 +166,9 @@ public final class TrashCommand extends CommandBase {
                 }
                 case PageEventData.ACTION_ADD_EXACT -> {
                     ItemStack held = player.getInventory().getItemInHand();
-                    if (ItemStack.isEmpty(held)) {
+                    if (held == null || ItemStack.isEmpty(held)) {
                         player.sendMessage(Message.raw("Hold an item to add it to the auto-trash list."));
+                        rebuild();
                         return;
                     }
                     String itemId = held.getItemId();
@@ -189,6 +190,7 @@ public final class TrashCommand extends CommandBase {
                     String itemId = data.itemId;
                     if (itemId == null || itemId.isBlank()) {
                         player.sendMessage(Message.raw("Click a row to remove it from the auto-trash list."));
+                        rebuild();
                         return;
                     }
                     String[] current = this.playerSettings.getExactItems();
