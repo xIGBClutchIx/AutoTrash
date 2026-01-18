@@ -1,0 +1,100 @@
+$C = "../Common.ui";
+
+$C.@PageOverlay {}
+
+$C.@DecoratedContainer {
+  Anchor: (Width: 700, Height: 700);
+
+  #Title {
+    Label {
+      Style: (
+        ...$C.@TitleStyle,
+        HorizontalAlignment: Center,
+      );
+      Text: "Auto Trash";
+      Padding: (Horizontal: 19);
+    }
+  }
+
+  #Content {
+    LayoutMode: Top;
+    Padding: (Full: 16);
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Bottom: 16);
+      Background: (TexturePath: "../Common/ContainerPanelPatch.png", Border: 4);
+      Padding: (Full: 12);
+
+      Label {
+        Text: "Toggles";
+        Style: (RenderBold: true, RenderUppercase: true, TextColor: #878e9c, FontSize: 13);
+        Anchor: (Bottom: 8);
+      }
+
+      Group #EnabledRow {
+        LayoutMode: Left;
+        Anchor: (Bottom: 8);
+
+        Label {
+          Text: "Enable auto-trash";
+          Anchor: (Top: 6, Left: 6, Right: 16);
+          Style: $C.@DefaultLabelStyle;
+        }
+
+        $C.@CheckBox #CheckBox {}
+      }
+
+      Group #NotifyRow {
+        LayoutMode: Left;
+        Anchor: (Bottom: 8);
+
+        Label {
+          Text: "Red notification text";
+          Anchor: (Top: 6, Left: 6, Right: 16);
+          Style: $C.@DefaultLabelStyle;
+        }
+
+        $C.@CheckBox #CheckBox {}
+      }
+
+    }
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Bottom: 0);
+      Background: (TexturePath: "../Common/ContainerPanelPatch.png", Border: 4);
+      Padding: (Full: 12);
+
+      Label {
+        Text: "Auto-trash items";
+        Style: (RenderBold: true, RenderUppercase: true, TextColor: #878e9c, FontSize: 13);
+        Anchor: (Bottom: 8);
+      }
+
+      Label #ItemHelp {
+        Text: "Hold an item and press add. Click a row to remove.";
+        Style: (FontSize: 12, TextColor: #6e7da1);
+        Anchor: (Bottom: 8);
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Bottom: 12);
+
+        $C.@SmallSecondaryTextButton #ItemAddButton {
+          Anchor: (Width: 140, Height: 28, Right: 8);
+          Text: "ADD HELD";
+        }
+      }
+
+      Group #ItemList {
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Anchor: (Height: 320);
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

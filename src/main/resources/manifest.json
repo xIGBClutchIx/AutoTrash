@@ -11,5 +11,6 @@
             "Url": "https://clutchy.me"
         }
     ],
-    "IncludesAssetPack": false
+    "IncludesAssetPack": true,
+    "Description": "Auto-trash filter and configuration UI"
 }

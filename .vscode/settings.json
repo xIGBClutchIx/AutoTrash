@@ -17,5 +17,13 @@
     "explorer.fileNesting.patterns": {
         "build.gradle": "gradle.properties, settings.gradle"
     },
-    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable"
+    "java.format.settings.url": "eclipse-formatter.xml",
+    "java.imports.order": [
+        "java",
+        "org",
+        "com",
+        "me"
+    ],
+    "java.sources.organizeImports.starThreshold": 5,
+    "java.sources.organizeImports.staticStarThreshold": 5
 }

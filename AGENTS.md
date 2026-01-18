@@ -1,4 +1,4 @@
-# Agent Guide for HytaleCore
+# Agent Guide for AutoTrash
 
 This file describes build, test, and style expectations for agents.
 It applies to the whole repository.
@@ -6,11 +6,21 @@ It applies to the whole repository.
 ## Repo Overview
 - Java plugin project for Hytale Server.
 - Local dependency lives in `libraries/HytaleServer.jar`.
-- Entry point class: `me.clutchy.hytale.main.HytaleCorePlugin`.
+- Entry point class: `me.clutchy.hytale.autotrash.AutoTrashPlugin`.
 - Plugin manifest: `src/main/resources/manifest.json`.
 - Source root: `src/main/java`.
 - Tests (if added) go in `src/test/java`.
 - Compiled outputs appear under `bin/` and `.gradle/` (do not edit).
+
+## Plugin Architecture
+- **AutoTrashPlugin.java** - Plugin entry point, registers components, events, and commands.
+- **AutoTrashPlayerSettings.java** - Per-player component storing settings (enabled, notify, exactItems[]).
+- **AutoTrashSystem.java** - Handles inventory change events and removes configured trash items.
+- **TrashCommand.java** - `/trash` command that opens the configuration GUI.
+
+## UI Resources
+- UI page: `src/main/resources/Common/UI/Custom/Pages/AutoTrashConfigPage.ui`
+- Uses shared components from `../Common.ui`
 
 ## Build / Run / Test
 Use `./gradlew` (wrapper checked in).
@@ -51,8 +61,8 @@ Run (if application plugin is added later):
 ```
 
 Lint/format:
-- No linting or formatting tasks are configured yet.
-- If you add one, document the command here.
+- Use `./gradlew spotlessApply` to format.
+- Use `./gradlew spotlessCheck` to verify formatting.
 
 ## Dependencies
 - Local jar dependency is declared via `implementation files('libraries/HytaleServer.jar')`.
@@ -67,7 +77,7 @@ Lint/format:
 ## Manifest Conventions
 - `manifest.json` lives in `src/main/resources`.
 - `Main` must match the fully qualified plugin class.
-- Keep `Version` as `$version` for build-time substitution.
+- Keep `Version` as semver format.
 - Maintain `Dependencies` keys using `Vendor:Module` format.
 
 ## Code Style (Java)
@@ -87,8 +97,8 @@ Use the existing style in `src/main/java`.
 - Separate import groups with a single blank line.
 
 ### Naming
-- Packages: lowercase with dots (`me.clutchy.hytale.main`).
-- Classes: PascalCase (`HytaleCorePlugin`).
+- Packages: lowercase with dots (`me.clutchy.hytale.autotrash`).
+- Classes: PascalCase (`AutoTrashPlugin`).
 - Methods/fields: lowerCamelCase.
 - Constants: UPPER_SNAKE_CASE.
 - Avoid one-letter names except for indices.
@@ -140,17 +150,8 @@ Conventional commits: use `type(scope): subject` format for the first line.
 - Do not commit `.gradle/` content.
 - Keep resources under `src/main/resources`.
 
-## Cursor/Copilot Rules
-- No `.cursorrules`, `.cursor/rules/`, or Copilot instructions found.
-- If you add any, update this section.
-
-## Suggested Next Improvements (Optional)
-- Add Gradle wrapper for reproducible builds.
-- Add a testing framework (JUnit) if tests are added.
-- Add `application` plugin only if a runnable main is needed.
-
 ## Quick Reference
-- Main class: `me.clutchy.hytale.main.HytaleCorePlugin`
+- Main class: `me.clutchy.hytale.autotrash.AutoTrashPlugin`
 - Manifest: `src/main/resources/manifest.json`
 - Local SDK jar: `libraries/HytaleServer.jar`
 - Build task: `./gradlew build`
