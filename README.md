@@ -31,6 +31,12 @@ Click any item in your trash list to remove it.
 |---------|-------------|
 | `/trash` | Opens the AutoTrash configuration GUI |
 
+## Permissions
+
+| Permission | Default | Description |
+|------------|---------|-------------|
+| `me.clutchy.hytale.autotrash.command.trash` | Adventure | Allows access to the `/trash` configuration UI |
+
 ## Building
 
 ```bash
@@ -50,6 +56,10 @@ Output JAR will be in `build/libs/`.
 - Hytale Server with plugin support
 - Java 25 toolchain (or compatible JDK for Gradle toolchains)
 - Server SDK jar resolved from `libraries/HytaleServer.jar` or a local Hytale install at `~/.config/Hytale`, `~/Library/Application Support/Hytale`, or `%AppData%/Roaming/Hytale`
+
+## License
+
+MIT. See `LICENSE`.
 
 ## Author
 
