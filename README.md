@@ -53,6 +53,16 @@ Click any item in your trash list to remove it.
 
 ## Building
 
+Provision runtime (required before building or inspecting server APIs):
+
+```bash
+./gradlew runHytale
+```
+
+Manifest generation happens during builds and is packaged automatically (`build/generated/manifestfactory/manifest.json`).
+
+Build the plugin:
+
 ```bash
 ./gradlew build
 ```
@@ -69,7 +79,7 @@ Output JAR will be in `build/libs/`.
 
 - Hytale Server with plugin support
 - Java 25 toolchain (or compatible JDK for Gradle toolchains)
-- Server SDK jar resolved from `libraries/HytaleServer.jar` or a local Hytale install at `~/.config/Hytale`, `~/Library/Application Support/Hytale`, or `%AppData%/Roaming/Hytale`
+- Runtime provisioned via `./gradlew runHytale` (produces `run/runtime/<version>/Server/HytaleServer.jar` and `run/runtime/<version>/Assets.zip`)
 
 ## License
 

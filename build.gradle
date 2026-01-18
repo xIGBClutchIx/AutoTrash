@@ -2,36 +2,28 @@ plugins {
     id 'java'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
     id 'com.diffplug.spotless' version '6.25.0'
+    id 'io.moonlightdevelopment.runhytale' version '1.0.1'
+    id 'io.moonlightdevelopment.manifestfactory' version '1.0.0'
 }
 
-ext {
-    def home = System.getProperty('user.home')
-    def os = System.getProperty('os.name').toLowerCase()
+// Project identity used by manifest generation and publishing metadata.
+group = 'me.clutchy.hytale'
+version = '1.0.0'
 
-    if (os.contains('win')) {
-        hytaleHome = "${home}/AppData/Roaming/Hytale"
-    } else if (os.contains('mac')) {
-        hytaleHome = "${home}/Library/Application Support/Hytale"
-    } else {
-        hytaleHome = "${home}/.config/Hytale"
-    }
-
-    java_version = project.findProperty('java_version') ?: '25'
-    patchline = project.findProperty('patchline') ?: 'release'
-    includes_pack = project.findProperty('includes_pack') ?: 'false'
-    load_user_mods = project.findProperty('load_user_mods') ?: 'false'
-}
-
+// Resolve plugins and formatting dependencies.
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
+// Java toolchain and archive variants.
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
     withSourcesJar()
     withJavadocJar()
 }
 
+// Source formatting via Spotless + Eclipse formatter.
 spotless {
     java {
         eclipse().configFile('eclipse-formatter.xml')
@@ -41,50 +33,162 @@ spotless {
     }
 }
 
-dependencies {
-    def installServerJar = file("$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar")
-    def bundledServerJar = file('libraries/HytaleServer.jar')
-    def serverJar = installServerJar.exists() ? installServerJar : bundledServerJar
-    implementation(files(serverJar))
-}
+// ManifestFactory configuration for Hytale plugin metadata.
+hytaleManifest {
+    group.set(project.group.toString())
+    name.set(project.name.toString())
+    version.set(project.version.toString())
+    description.set('Auto-trash filter and configuration UI')
 
-def serverRunDir = file("$projectDir/run")
-if (!serverRunDir.exists()) {
-    serverRunDir.mkdirs()
-}
-
-tasks.register('updatePluginManifest') {
-    def manifestFile = file('src/main/resources/manifest.json')
-    doLast {
-        if (!manifestFile.exists()) {
-            throw new GradleException("Could not find manifest.json at ${manifestFile.path}!")
+    authors {
+        author {
+            name.set('Clutchy')
+            email.set('email@clutchy.me')
+            url.set('https://clutchy.me')
         }
-        def manifestJson = new groovy.json.JsonSlurper().parseText(manifestFile.text)
-        manifestJson.Version = version
-        manifestJson.IncludesAssetPack = includes_pack.toBoolean()
-        manifestFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(manifestJson))
+    }
+
+    main.set('me.clutchy.hytale.autotrash.AutoTrashPlugin')
+    includesAssetPack.set(true)
+}
+
+// Location of generated manifest output.
+def generatedManifestDir = layout.buildDirectory.dir('generated/manifestfactory')
+
+// Error message used when runtime is missing.
+def runtimeMissingMessage = 'Hytale runtime not found. Run ./gradlew runHytale to provision it.'
+
+// Resolve the newest available runtime HytaleServer.jar in run/runtime/<version>/Server/.
+def hytaleServerJar = providers.provider {
+    def runtimeDir = file("$projectDir/run/runtime")
+    if (!runtimeDir.exists()) {
+        return null
+    }
+
+    def serverJarCandidates = fileTree(runtimeDir) {
+        include '**/Server/HytaleServer.jar'
+    }.files
+
+    if (serverJarCandidates.isEmpty()) {
+        return null
+    }
+
+    def compareVersions = { String left, String right ->
+        def leftParsed = org.gradle.util.VersionNumber.parse(left)
+        def rightParsed = org.gradle.util.VersionNumber.parse(right)
+        if (leftParsed == org.gradle.util.VersionNumber.UNKNOWN
+                && rightParsed == org.gradle.util.VersionNumber.UNKNOWN) {
+            return left <=> right
+        }
+        if (leftParsed == org.gradle.util.VersionNumber.UNKNOWN) {
+            return -1
+        }
+        if (rightParsed == org.gradle.util.VersionNumber.UNKNOWN) {
+            return 1
+        }
+        return leftParsed <=> rightParsed
+    }
+
+    serverJarCandidates.sort { left, right ->
+        compareVersions(left.parentFile.parentFile.name, right.parentFile.parentFile.name)
+    }.last()
+}
+
+// Include the generated manifest in the main resources output.
+sourceSets {
+    main {
+        resources {
+            srcDir(generatedManifestDir)
+        }
     }
 }
 
-tasks.named('processResources') {
-    dependsOn 'updatePluginManifest'
+// Compile against the runtime-provisioned server jar.
+dependencies {
+    implementation(files({ hytaleServerJar.getOrNull() }))
 }
 
+// Fail builds if compile/runtime classpaths resolve without a runtime.
+configurations.compileClasspath.incoming.beforeResolve {
+    if (hytaleServerJar.getOrNull() == null) {
+        throw new GradleException(runtimeMissingMessage)
+    }
+}
+
+configurations.runtimeClasspath.incoming.beforeResolve {
+    if (hytaleServerJar.getOrNull() == null) {
+        throw new GradleException(runtimeMissingMessage)
+    }
+}
+
+// Ensure manifest generation is available during resource processing.
+tasks.named('processResources') {
+    dependsOn('generateHytaleManifest')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Keep sources jar focused on Java sources.
+tasks.named('sourcesJar') {
+    dependsOn('generateHytaleManifest')
+    from(sourceSets.main.allJava)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude('manifest.json')
+}
+
+// Include license in the output jar.
 tasks.named('jar') {
     from('LICENSE')
 }
 
-idea.project.settings.runConfigurations {
-    'HytaleServer'(org.jetbrains.gradle.ext.Application) {
-        mainClass = 'com.hypixel.hytale.Main'
-        moduleName = project.idea.module.name + '.main'
-        programParameters = "--allow-op --assets=$hytaleHome/install/$patchline/package/game/latest/Assets.zip"
-        if (includes_pack.toBoolean()) {
-            programParameters += " --mods=${sourceSets.main.java.srcDirs.first().parentFile.absolutePath}"
+// Special-case: running runHytale alone should not trigger a full build.
+def runHytaleOnly = gradle.startParameter.taskNames.size() == 1 && gradle.startParameter.taskNames.first().endsWith('runHytale')
+
+if (runHytaleOnly) {
+    def disabledTasks = [
+            'build',
+            'check',
+            'assemble',
+            'classes',
+            'compileJava',
+            'processResources',
+            'jar',
+            'javadoc',
+            'javadocJar',
+            'sourcesJar',
+            'compileTestJava',
+            'processTestResources',
+            'testClasses',
+            'test',
+            'spotlessJava',
+            'spotlessJavaCheck',
+            'spotlessCheck',
+            'spotlessInternalRegisterDependencies'
+    ]
+
+    tasks.matching { task ->
+        task.name in disabledTasks
+    }.configureEach {
+        enabled = false
+    }
+}
+
+// Placeholder jar used only for runHytale provisioning without building sources.
+def placeholderModJar = tasks.register('prepareHytaleModJar', Jar) {
+    archiveBaseName = 'AutoTrash'
+    archiveVersion = version.toString()
+    destinationDirectory = layout.buildDirectory.dir('libs')
+}
+
+// Configure runHytale to use either the placeholder or the real jar.
+gradle.projectsEvaluated {
+    tasks.named('runHytale') {
+        dependsOn.clear()
+        if (runHytaleOnly) {
+            dependsOn(placeholderModJar)
+            modJar.set(placeholderModJar.flatMap { it.archiveFile })
+        } else {
+            dependsOn(tasks.named('jar'))
+            modJar.set(tasks.named('jar').flatMap { it.archiveFile })
         }
-        if (load_user_mods.toBoolean()) {
-            programParameters += " --mods=$hytaleHome/UserData/Mods"
-        }
-        workingDirectory = serverRunDir.absolutePath
     }
 }
