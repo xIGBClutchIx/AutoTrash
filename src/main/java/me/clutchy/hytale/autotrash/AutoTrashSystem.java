@@ -21,7 +21,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.NotificationUtil;
 
 /**
- * Handles auto-trashing of configured items based on inventory change events and match ru les.
+ * Handles auto-trashing of configured items based on inventory change events and match rules.
  */
 public final class AutoTrashSystem {
 
@@ -218,9 +218,6 @@ public final class AutoTrashSystem {
         }
 
         slotsToRemove.add(slot);
-        if (slotBefore == null) {
-            return 0;
-        }
         return registerRemovedItem(slotBefore, slotAfter, totalsByItem, samplesByItem);
     }
 
@@ -277,7 +274,7 @@ public final class AutoTrashSystem {
      * @param samplesByItem output samples for each item id
      * @return quantity removed in this transaction
      */
-    private static int registerRemovedItem(@NonNullDecl ItemStack slotBefore, @NonNullDecl ItemStack slotAfter, @NonNullDecl Map<String, Integer> totalsByItem,
+    private static int registerRemovedItem(ItemStack slotBefore, @NonNullDecl ItemStack slotAfter, @NonNullDecl Map<String, Integer> totalsByItem,
             @NonNullDecl Map<String, ItemStack> samplesByItem) {
         String itemId = slotAfter.getItemId();
         int beforeQuantity = ItemStack.isEmpty(slotBefore) ? 0 : slotBefore.getQuantity();
@@ -303,6 +300,23 @@ public final class AutoTrashSystem {
             return;
         }
 
+        for (Map.Entry<String, Integer> entry : totalsByItem.entrySet()) {
+            ItemStack sample = samplesByItem.get(entry.getKey());
+            if (sample == null) {
+                continue;
+            }
+
+            sendTrashNotification(player, sample);
+        }
+    }
+
+    /**
+     * Sends a single trash notification for an item stack.
+     *
+     * @param player player to notify
+     * @param itemStack item stack to display
+     */
+    public static void sendTrashNotification(@NonNullDecl Player player, @NonNullDecl ItemStack itemStack) {
         World world = player.getWorld();
         if (world == null || !world.getGameplayConfig().getShowItemPickupNotifications()) {
             return;
@@ -313,15 +327,8 @@ public final class AutoTrashSystem {
             return;
         }
 
-        for (Map.Entry<String, Integer> entry : totalsByItem.entrySet()) {
-            ItemStack sample = samplesByItem.get(entry.getKey());
-            if (sample == null) {
-                continue;
-            }
-
-            Message itemName = Message.translation(sample.getItem().getTranslationKey()).color("#b93333");
-            NotificationUtil.sendNotification(playerRef.getPacketHandler(), itemName, null, sample.toPacket(), NotificationStyle.Default);
-        }
+        Message itemName = Message.translation(itemStack.getItem().getTranslationKey()).color("#b93333");
+        NotificationUtil.sendNotification(playerRef.getPacketHandler(), itemName, null, itemStack.toPacket(), NotificationStyle.Default);
     }
 
     /**

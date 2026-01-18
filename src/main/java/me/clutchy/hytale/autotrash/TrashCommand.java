@@ -10,9 +10,9 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
-import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
@@ -25,7 +25,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.util.NotificationUtil;
 
 /**
  * Command to open the auto-trash configuration GUI.
@@ -41,7 +40,8 @@ public final class TrashCommand extends CommandBase {
      * @param settingsComponentType component type for player settings
      */
     public TrashCommand(@NonNullDecl ComponentType<EntityStore, AutoTrashPlayerSettings> settingsComponentType) {
-        super("trash", "autotrash.command.trash.desc");
+        super("trash", "Open the auto-trash configuration UI.");
+        this.setPermissionGroup(GameMode.Adventure);
         this.settingsComponentType = settingsComponentType;
     }
 
@@ -177,10 +177,12 @@ public final class TrashCommand extends CommandBase {
                         this.playerSettings.setExactItems(updated);
                         changed = true;
                     }
-                    // Remove the held item and send trash notification.
-                    player.getInventory().getHotbar().removeItemStackFromSlot(player.getInventory().getActiveHotbarSlot());
-                    if (this.playerSettings.isNotify()) {
-                        sendTrashNotification(player, held);
+                    if (this.playerSettings.isEnabled()) {
+                        // Remove the held item and send trash notification.
+                        player.getInventory().getHotbar().removeItemStackFromSlot(player.getInventory().getActiveHotbarSlot());
+                        if (this.playerSettings.isNotify()) {
+                            sendTrashNotification(player, held);
+                        }
                     }
                 }
                 case PageEventData.ACTION_REMOVE_EXACT -> {
@@ -231,12 +233,7 @@ public final class TrashCommand extends CommandBase {
          * @param itemStack item stack to display
          */
         private void sendTrashNotification(@NonNullDecl Player player, @NonNullDecl ItemStack itemStack) {
-            PlayerRef playerRef = AutoTrashSystem.resolvePlayerRef(player);
-            if (playerRef == null) {
-                return;
-            }
-            Message itemName = Message.translation(itemStack.getItem().getTranslationKey()).color("#b93333");
-            NotificationUtil.sendNotification(playerRef.getPacketHandler(), itemName, null, itemStack.toPacket(), NotificationStyle.Default);
+            AutoTrashSystem.sendTrashNotification(player, itemStack);
         }
 
         /**
@@ -263,12 +260,17 @@ public final class TrashCommand extends CommandBase {
          */
         private String[] updateArray(@NonNullDecl String[] values, boolean add, @NonNullDecl String itemId) {
             List<String> items = toMutableList(values);
+            boolean changed = false;
             if (add) {
                 if (!items.contains(itemId)) {
                     items.add(itemId);
+                    changed = true;
                 }
             } else {
-                items.remove(itemId);
+                changed = items.remove(itemId);
+            }
+            if (!changed) {
+                return values;
             }
             return items.toArray(String[]::new);
         }

@@ -53,4 +53,4 @@ Output JAR will be in `build/libs/`.
 
 ## Author
 
-Cameron Weaver (Clutch) - [clutchy.me](https://clutchy.me)
+Clutch - [clutchy.me](https://clutchy.me)
