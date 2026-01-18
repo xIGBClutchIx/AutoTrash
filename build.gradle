@@ -70,6 +70,10 @@ tasks.named('processResources') {
     dependsOn 'updatePluginManifest'
 }
 
+tasks.named('jar') {
+    from('LICENSE')
+}
+
 idea.project.settings.runConfigurations {
     'HytaleServer'(org.jetbrains.gradle.ext.Application) {
         mainClass = 'com.hypixel.hytale.Main'
