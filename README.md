@@ -1,4 +1,4 @@
-# AutoTrash
+# <img src="docs/images/icon.png" alt="AutoTrash icon" width="40" /> AutoTrash
 
 A Hytale server plugin that automatically trashes configured items when picked up.
 
@@ -18,6 +18,15 @@ A Hytale server plugin that automatically trashes configured items when picked u
 5. Optionally enable "Red notification text" to see when items are trashed
 
 Click any item in your trash list to remove it.
+
+## Screenshots
+
+<details>
+<summary>Show screenshots</summary>
+
+![AutoTrash config UI](docs/images/preview/config.png)
+![AutoTrash notification](docs/images/preview/notification.png)
+</details>
 
 ## Installation
 
