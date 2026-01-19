@@ -67,8 +67,12 @@ public final class AutoTrashSystem {
         if (settings == null || !settings.isEnabled()) {
             return;
         }
+        AutoTrashPlayerSettings.AutoTrashProfile profile = settings.getActiveProfile();
+        if (profile == null) {
+            return;
+        }
 
-        removeTrashItems(player, container, transaction, settings);
+        removeTrashItems(player, container, transaction, profile, settings);
     }
 
     /**
@@ -77,15 +81,15 @@ public final class AutoTrashSystem {
      * @param player the player owning the inventory
      * @param container the container being modified
      * @param transaction the inventory transaction driving the change
-     * @param settings player auto-trash settings
+     * @param profile active auto-trash profile
      */
     private static void removeTrashItems(@NonNullDecl Player player, @NonNullDecl ItemContainer container, @NonNullDecl Transaction transaction,
-            @NonNullDecl AutoTrashPlayerSettings settings) {
+            @NonNullDecl AutoTrashPlayerSettings.AutoTrashProfile profile, @NonNullDecl AutoTrashPlayerSettings settings) {
         // Collect only the slots touched by this transaction to avoid full scans.
         List<Short> slotsToRemove = new ArrayList<>();
         Map<String, Integer> totalsByItem = new LinkedHashMap<>();
         Map<String, ItemStack> samplesByItem = new LinkedHashMap<>();
-        int removedCount = collectModifiedTrashSlots(container, transaction, slotsToRemove, totalsByItem, samplesByItem, settings);
+        int removedCount = collectModifiedTrashSlots(container, transaction, slotsToRemove, totalsByItem, samplesByItem, profile);
         if (removedCount > 0) {
             for (short slot : slotsToRemove) {
                 container.removeItemStackFromSlot(slot);
@@ -104,11 +108,11 @@ public final class AutoTrashSystem {
      * @param slotsToRemove output list of slot indices to remove
      * @param totalsByItem output totals for each item id
      * @param samplesByItem output samples for each item id
-     * @param settings player auto-trash settings
+     * @param profile active auto-trash profile
      * @return total quantity removed by the transaction
      */
     private static int collectModifiedTrashSlots(@NonNullDecl ItemContainer container, @NonNullDecl Transaction transaction, @NonNullDecl List<Short> slotsToRemove,
-            @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem, @NonNullDecl AutoTrashPlayerSettings settings) {
+            @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem, @NonNullDecl AutoTrashPlayerSettings.AutoTrashProfile profile) {
         if (!transaction.succeeded()) {
             return 0;
         }
@@ -116,26 +120,26 @@ public final class AutoTrashSystem {
         // Normalize the common transaction types into per-slot checks.
         switch (transaction) {
             case ItemStackSlotTransaction slotTransaction -> {
-                return collectFromSlotTransaction(container, slotTransaction, slotsToRemove, totalsByItem, samplesByItem, settings);
+                return collectFromSlotTransaction(container, slotTransaction, slotsToRemove, totalsByItem, samplesByItem, profile);
             }
             case SlotTransaction slotTransaction -> {
-                return collectFromSlotTransaction(container, slotTransaction, slotsToRemove, totalsByItem, samplesByItem, settings);
+                return collectFromSlotTransaction(container, slotTransaction, slotsToRemove, totalsByItem, samplesByItem, profile);
             }
             case ItemStackTransaction itemStackTransaction -> {
-                return collectFromListTransaction(container, itemStackTransaction.getSlotTransactions(), slotsToRemove, totalsByItem, samplesByItem, settings);
+                return collectFromListTransaction(container, itemStackTransaction.getSlotTransactions(), slotsToRemove, totalsByItem, samplesByItem, profile);
             }
             case MoveTransaction<?> moveTransaction -> {
-                int removed = collectFromSlotTransaction(container, moveTransaction.getRemoveTransaction(), slotsToRemove, totalsByItem, samplesByItem, settings);
+                int removed = collectFromSlotTransaction(container, moveTransaction.getRemoveTransaction(), slotsToRemove, totalsByItem, samplesByItem, profile);
                 Transaction addTransaction = moveTransaction.getAddTransaction();
                 if (addTransaction != null) {
-                    removed += collectModifiedTrashSlots(container, addTransaction, slotsToRemove, totalsByItem, samplesByItem, settings);
+                    removed += collectModifiedTrashSlots(container, addTransaction, slotsToRemove, totalsByItem, samplesByItem, profile);
                 }
                 return removed;
             }
             case ListTransaction<?> listTransaction -> {
                 int removed = 0;
                 for (Transaction subTransaction : listTransaction.getList()) {
-                    removed += collectModifiedTrashSlots(container, subTransaction, slotsToRemove, totalsByItem, samplesByItem, settings);
+                    removed += collectModifiedTrashSlots(container, subTransaction, slotsToRemove, totalsByItem, samplesByItem, profile);
                 }
                 return removed;
             }
@@ -154,17 +158,18 @@ public final class AutoTrashSystem {
      * @param slotsToRemove output list of slot indices to remove
      * @param totalsByItem output totals for each item id
      * @param samplesByItem output samples for each item id
-     * @param settings player auto-trash settings
+     * @param profile active auto-trash profile
      * @return quantity removed when the transaction matches a trash item
      */
     private static int collectFromSlotTransaction(@NonNullDecl ItemContainer container, @NonNullDecl SlotTransaction transaction, @NonNullDecl List<Short> slotsToRemove,
-            @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem, @NonNullDecl AutoTrashPlayerSettings settings) {
+            @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem, @NonNullDecl AutoTrashPlayerSettings.AutoTrashProfile profile) {
         if (!transaction.succeeded()) {
             return 0;
         }
 
         return collectFromSlotTransaction(container, transaction.getAction().isRemove(), transaction.getSlot(), transaction.getSlotAfter(),
-                transaction.getSlotBefore(), slotsToRemove, totalsByItem, samplesByItem, settings);
+                transaction.getSlotBefore(), slotsToRemove, totalsByItem, samplesByItem, profile);
+
     }
 
     /**
@@ -175,17 +180,18 @@ public final class AutoTrashSystem {
      * @param slotsToRemove output list of slot indices to remove
      * @param totalsByItem output totals for each item id
      * @param samplesByItem output samples for each item id
-     * @param settings player auto-trash settings
+     * @param profile active auto-trash profile
      * @return quantity removed when the transaction matches a trash item
      */
-    private static int collectFromSlotTransaction(@NonNullDecl ItemContainer container, @NonNullDecl ItemStackSlotTransaction transaction, @NonNullDecl List<Short> slotsToRemove,
-            @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem, @NonNullDecl AutoTrashPlayerSettings settings) {
+    private static int collectFromSlotTransaction(@NonNullDecl ItemContainer container, @NonNullDecl ItemStackSlotTransaction transaction,
+            @NonNullDecl List<Short> slotsToRemove, @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem,
+            @NonNullDecl AutoTrashPlayerSettings.AutoTrashProfile profile) {
         if (!transaction.succeeded()) {
             return 0;
         }
 
         return collectFromSlotTransaction(container, transaction.getAction().isRemove(), transaction.getSlot(), transaction.getSlotAfter(),
-                transaction.getSlotBefore(), slotsToRemove, totalsByItem, samplesByItem, settings);
+                transaction.getSlotBefore(), slotsToRemove, totalsByItem, samplesByItem, profile);
     }
 
     /**
@@ -199,12 +205,12 @@ public final class AutoTrashSystem {
      * @param slotsToRemove output list of slot indices to remove
      * @param totalsByItem output totals for each item id
      * @param samplesByItem output samples for each item id
-     * @param settings player auto-trash settings
+     * @param profile active auto-trash profile
      * @return quantity removed when the transaction matches a trash item
      */
     private static int collectFromSlotTransaction(@NonNullDecl ItemContainer container, boolean isRemoveAction, short slot, ItemStack slotAfter,
             ItemStack slotBefore, @NonNullDecl List<Short> slotsToRemove, @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem,
-            @NonNullDecl AutoTrashPlayerSettings settings) {
+            @NonNullDecl AutoTrashPlayerSettings.AutoTrashProfile profile) {
         if (isRemoveAction) {
             return 0;
         }
@@ -213,7 +219,7 @@ public final class AutoTrashSystem {
             return 0;
         }
 
-        if (!matchesRule(slotAfter, settings)) {
+        if (!matchesRule(slotAfter, profile)) {
             return 0;
         }
 
@@ -230,15 +236,15 @@ public final class AutoTrashSystem {
      * @param slotsToRemove output list of slot indices to remove
      * @param totalsByItem output totals for each item id
      * @param samplesByItem output samples for each item id
-     * @param settings player auto-trash settings
+     * @param profile active auto-trash profile
      * @return total quantity removed across nested transactions
      */
     private static <T extends Transaction> int collectFromListTransaction(@NonNullDecl ItemContainer container, @NonNullDecl List<T> transactions,
             @NonNullDecl List<Short> slotsToRemove,
-            @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem, @NonNullDecl AutoTrashPlayerSettings settings) {
+            @NonNullDecl Map<String, Integer> totalsByItem, @NonNullDecl Map<String, ItemStack> samplesByItem, @NonNullDecl AutoTrashPlayerSettings.AutoTrashProfile profile) {
         int removed = 0;
         for (Transaction transaction : transactions) {
-            removed += collectModifiedTrashSlots(container, transaction, slotsToRemove, totalsByItem, samplesByItem, settings);
+            removed += collectModifiedTrashSlots(container, transaction, slotsToRemove, totalsByItem, samplesByItem, profile);
         }
         return removed;
     }
@@ -247,16 +253,16 @@ public final class AutoTrashSystem {
      * Checks whether the given stack matches configured auto-trash rules.
      *
      * @param itemStack the stack to check
-     * @param settings player auto-trash settings
+     * @param profile active auto-trash profile
      * @return true if the stack should be auto-trashed
      */
-    private static boolean matchesRule(ItemStack itemStack, @NonNullDecl AutoTrashPlayerSettings settings) {
+    private static boolean matchesRule(ItemStack itemStack, @NonNullDecl AutoTrashPlayerSettings.AutoTrashProfile profile) {
         if (itemStack == null || ItemStack.isEmpty(itemStack)) {
             return false;
         }
 
         String itemId = itemStack.getItemId();
-        for (String exactItem : settings.getExactItems()) {
+        for (String exactItem : profile.getExactItems()) {
             if (itemId.equals(exactItem)) {
                 return true;
             }
