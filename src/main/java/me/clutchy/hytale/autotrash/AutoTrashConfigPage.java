@@ -237,14 +237,44 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
      * Event payload for the UI page.
      */
     public static class PageEventData {
+        /**
+         * Creates an empty event payload for decoding.
+         */
+        public PageEventData() {
+        }
+
+        /**
+         * Payload key for the action identifier.
+         */
         public static final String KEY_ACTION = "Action";
+        /**
+         * Payload key for boolean toggle values.
+         */
         public static final String KEY_VALUE = "@Value";
+        /**
+         * Payload key for item identifiers.
+         */
         public static final String KEY_ITEM = "Item";
+        /**
+         * Action id for toggling the enabled setting.
+         */
         public static final String ACTION_TOGGLE_ENABLED = "ToggleEnabled";
+        /**
+         * Action id for toggling notification setting.
+         */
         public static final String ACTION_TOGGLE_NOTIFY = "ToggleNotify";
+        /**
+         * Action id for adding an exact item.
+         */
         public static final String ACTION_ADD_EXACT = "AddExact";
+        /**
+         * Action id for removing an exact item.
+         */
         public static final String ACTION_REMOVE_EXACT = "RemoveExact";
 
+        /**
+         * Codec for serializing UI event data payloads.
+         */
         public static final BuilderCodec<PageEventData> CODEC = BuilderCodec.builder(PageEventData.class, PageEventData::new)
                 .append(new KeyedCodec<>(KEY_ACTION, Codec.STRING), (data, value) -> data.action = value, data -> data.action)
                 .add()
@@ -260,8 +290,17 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
                 .add()
                 .build();
 
+        /**
+         * Incoming action identifier.
+         */
         public String action;
+        /**
+         * Incoming toggle value, if present.
+         */
         public Boolean value;
+        /**
+         * Incoming item identifier, if present.
+         */
         public String itemId;
     }
 }
