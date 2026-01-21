@@ -38,7 +38,13 @@ It applies to the whole repository.
 - **AutoTrashPlugin.java** - Plugin entry point, registers components, events, and commands.
 - **AutoTrashPlayerSettings.java** - Per-player component storing settings (enabled, notify, exactItems[]).
 - **AutoTrashSystem.java** - Handles inventory change events and removes configured trash items.
-- **TrashCommand.java** - `/trash` command that opens the configuration GUI.
+- **TrashCommand.java** - `/trash` command that opens the configuration GUI and routes subcommands.
+- **TrashAddCommand.java** - `/trash add <itemId>` adds an item to the auto-trash list.
+- **TrashRemoveCommand.java** - `/trash remove <itemId>` removes an item from the auto-trash list.
+- **TrashEnableCommand.java** - `/trash enable [true/false]` toggles auto-trash enabled state.
+- **TrashNotifyCommand.java** - `/trash notify [true/false]` toggles auto-trash notifications.
+- **TrashOnCommand.java** - `/trash on` enables auto-trash.
+- **TrashOffCommand.java** - `/trash off` disables auto-trash.
 
 ## UI Resources
 - UI page: `src/main/resources/Common/UI/Custom/Pages/AutoTrashConfigPage.ui`.

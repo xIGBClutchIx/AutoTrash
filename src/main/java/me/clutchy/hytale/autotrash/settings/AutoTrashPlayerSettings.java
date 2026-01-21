@@ -1,4 +1,4 @@
-package me.clutchy.hytale.autotrash;
+package me.clutchy.hytale.autotrash.settings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +31,8 @@ public class AutoTrashPlayerSettings implements Component<EntityStore> {
     /** Default profile name created on first use. */
     public static final String DEFAULT_PROFILE_NAME = "Default";
     private static final int DATA_VERSION = 1;
-    private static final MapCodec<AutoTrashProfile, Map<String, AutoTrashProfile>> PROFILES_CODEC = new MapCodec<>(AutoTrashProfile.CODEC, LinkedHashMap::new);
+    private static final MapCodec<AutoTrashProfile, Map<String, AutoTrashProfile>> PROFILES_CODEC =
+            new MapCodec<>(AutoTrashProfile.CODEC, LinkedHashMap::new);
 
     /** Codec used to serialize and validate auto-trash settings. */
     public static final BuilderCodec<AutoTrashPlayerSettings> CODEC = BuilderCodec.builder(AutoTrashPlayerSettings.class, AutoTrashPlayerSettings::new)
@@ -349,6 +350,49 @@ public class AutoTrashPlayerSettings implements Component<EntityStore> {
     }
 
     /**
+     * Adds an item id to the active profile when missing.
+     *
+     * @param itemId item id to add
+     * @return true if added
+     */
+    public boolean addExactItem(@NonNullDecl String itemId) {
+        AutoTrashProfile profile = getActiveProfile();
+        String[] existing = profile.getExactItems();
+        for (String current : existing) {
+            if (itemId.equals(current)) {
+                return false;
+            }
+        }
+        String[] updated = Arrays.copyOf(existing, existing.length + 1);
+        updated[existing.length] = itemId;
+        profile.setExactItems(updated);
+        return true;
+    }
+
+    /**
+     * Removes the provided item id from the active profile.
+     *
+     * @param itemId item id to remove
+     * @return true if removed
+     */
+    public boolean removeExactItem(@NonNullDecl String itemId) {
+        AutoTrashProfile profile = getActiveProfile();
+        List<String> updated = new ArrayList<>();
+        boolean removed = false;
+        for (String current : profile.getExactItems()) {
+            if (itemId.equals(current)) {
+                removed = true;
+                continue;
+            }
+            updated.add(current);
+        }
+        if (removed) {
+            profile.setExactItems(updated.toArray(new String[0]));
+        }
+        return removed;
+    }
+
+    /**
      * Captures legacy exact items for migration from v0 settings.
      *
      * @param legacyExactItems legacy item ids
@@ -483,7 +527,7 @@ public class AutoTrashPlayerSettings implements Component<EntityStore> {
          * @param exactItems exact item ids to remove
          */
         public AutoTrashProfile(String[] exactItems) {
-            setExactItems(exactItems);
+            this.exactItems = exactItems == null ? new String[0] : Arrays.copyOf(exactItems, exactItems.length);
         }
 
         /**

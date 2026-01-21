@@ -1,4 +1,4 @@
-package me.clutchy.hytale.autotrash;
+package me.clutchy.hytale.autotrash.system;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -19,6 +19,8 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.NotificationUtil;
+
+import me.clutchy.hytale.autotrash.settings.AutoTrashPlayerSettings;
 
 /**
  * Handles auto-trashing of configured items based on inventory change events and match rules.
@@ -64,11 +66,14 @@ public final class AutoTrashSystem {
         }
 
         AutoTrashPlayerSettings settings = getSettings(player);
-        if (settings == null || !settings.isEnabled()) {
+        if (settings == null) {
             return;
         }
         AutoTrashPlayerSettings.AutoTrashProfile profile = settings.getActiveProfile();
         if (profile == null) {
+            return;
+        }
+        if (!settings.isEnabled()) {
             return;
         }
 

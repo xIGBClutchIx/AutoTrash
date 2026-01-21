@@ -1,4 +1,4 @@
-package me.clutchy.hytale.autotrash;
+package me.clutchy.hytale.autotrash.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +23,9 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+
+import me.clutchy.hytale.autotrash.settings.AutoTrashPlayerSettings;
+import me.clutchy.hytale.autotrash.system.AutoTrashSystem;
 
 /**
  * UI page for configuring auto-trash settings.

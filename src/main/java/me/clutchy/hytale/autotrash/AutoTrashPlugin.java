@@ -9,15 +9,21 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
+import me.clutchy.hytale.autotrash.command.TrashCommand;
+import me.clutchy.hytale.autotrash.settings.AutoTrashPlayerSettings;
+import me.clutchy.hytale.autotrash.system.AutoTrashSystem;
+
 /**
  * Entrypoint plugin that wires the auto-trash inventory listener.
  */
 @SuppressWarnings("unused")
 public class AutoTrashPlugin extends JavaPlugin {
 
+    /** Logger for plugin lifecycle events. */
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    private final ComponentType<EntityStore, AutoTrashPlayerSettings> settingsComponentType;
+    /** Component type used for player settings. */
+    private ComponentType<EntityStore, AutoTrashPlayerSettings> settingsComponentType;
 
     /**
      * Creates the plugin and logs its initialization.
@@ -26,14 +32,13 @@ public class AutoTrashPlugin extends JavaPlugin {
      */
     public AutoTrashPlugin(@NonNullDecl JavaPluginInit init) {
         super(init);
-        LOGGER.atInfo().log("Initializing plugin " + this.getName());
-        this.settingsComponentType = this.getEntityStoreRegistry().registerComponent(AutoTrashPlayerSettings.class, "AutoTrash", AutoTrashPlayerSettings.CODEC);
     }
 
     /** Registers the auto-trash inventory listener. */
     @Override
     protected void setup() {
-        LOGGER.atInfo().log("Setting up plugin " + this.getName());
+        LOGGER.atInfo().log("Setting up plugin: AutoTrash");
+        this.settingsComponentType = this.getEntityStoreRegistry().registerComponent(AutoTrashPlayerSettings.class, "AutoTrash", AutoTrashPlayerSettings.CODEC);
         AutoTrashSystem.setSettingsComponentType(settingsComponentType);
         getEventRegistry().registerGlobal(LivingEntityInventoryChangeEvent.class, AutoTrashSystem::handleInventoryChange);
         getCommandRegistry().registerCommand(new TrashCommand(settingsComponentType));

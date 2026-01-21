@@ -44,12 +44,18 @@ Click any item in your trash list to remove it.
 | Command | Description |
 |---------|-------------|
 | `/trash` | Opens the AutoTrash configuration GUI |
+| `/trash add <itemId>` | Adds an item to your auto-trash list |
+| `/trash remove <itemId>` | Removes an item from your auto-trash list |
+| `/trash enable [true/false]` | Toggles auto-trash enabled state |
+| `/trash notify [true/false]` | Toggles auto-trash notification messages |
+| `/trash on` | Enables auto-trash |
+| `/trash off` | Disables auto-trash |
 
 ## Permissions
 
 | Permission | Default | Description |
 |------------|---------|-------------|
-| `me.clutchy.hytale.autotrash.command.trash` | Adventure | Allows access to the `/trash` configuration UI |
+| `me.clutchy.hytale.autotrash.command.trash` | Adventure | Allows access to `/trash` and its subcommands |
 
 ## Building
 

@@ -1,4 +1,4 @@
-package me.clutchy.hytale.autotrash;
+package me.clutchy.hytale.autotrash.command;
 
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
@@ -10,6 +10,10 @@ import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+
+import me.clutchy.hytale.autotrash.settings.AutoTrashPlayerSettings;
+import me.clutchy.hytale.autotrash.system.AutoTrashSystem;
+import me.clutchy.hytale.autotrash.ui.AutoTrashConfigPage;
 
 /**
  * Command to open the auto-trash configuration GUI.
@@ -28,6 +32,12 @@ public final class TrashCommand extends CommandBase {
         super("trash", "Open the auto-trash configuration UI.");
         this.setPermissionGroup(GameMode.Adventure);
         this.settingsComponentType = settingsComponentType;
+        addSubCommand(new TrashAddCommand(settingsComponentType));
+        addSubCommand(new TrashEnableCommand(settingsComponentType));
+        addSubCommand(new TrashNotifyCommand(settingsComponentType));
+        addSubCommand(new TrashOnCommand(settingsComponentType));
+        addSubCommand(new TrashOffCommand(settingsComponentType));
+        addSubCommand(new TrashRemoveCommand(settingsComponentType));
     }
 
     /**
@@ -55,7 +65,8 @@ public final class TrashCommand extends CommandBase {
                 return;
             }
 
-            player.getPageManager().openCustomPage(player.getReference(), player.getReference().getStore(), new AutoTrashConfigPage(playerRef, settingsComponentType));
+            player.getPageManager().openCustomPage(player.getReference(), player.getReference().getStore(),
+                    new AutoTrashConfigPage(playerRef, settingsComponentType));
         });
     }
 }
