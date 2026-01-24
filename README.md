@@ -8,6 +8,7 @@ A Hytale server plugin that automatically trashes configured items when picked u
 - **GUI configuration** - Open with `/trash` command
 - **Auto-trash on pickup** - Items matching the trash list are automatically removed
 - **Optional notifications** - Red text notification when items are trashed
+- **Quick bin** - Use `/bin` to open a temporary one-slot trash bin
 
 ## Usage
 
@@ -50,12 +51,14 @@ Click any item in your trash list to remove it.
 | `/trash notify [true/false]` | Toggles auto-trash notification messages |
 | `/trash on` | Enables auto-trash |
 | `/trash off` | Disables auto-trash |
+| `/bin` | Opens a temporary one-slot trash bin |
 
 ## Permissions
 
 | Permission | Default | Description |
 |------------|---------|-------------|
 | `me.clutchy.hytale.autotrash.command.trash` | Adventure | Allows access to `/trash` and its subcommands |
+| `me.clutchy.hytale.autotrash.command.bin` | Adventure | Allows access to `/bin` |
 
 ## Building
 

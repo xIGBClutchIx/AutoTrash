@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.4 - 2026-01-23
+- Add `/bin` command to open a temporary one-slot trash bin for quick item disposal.
+
 ## 1.0.3 - 2026-01-21
 - Add `/trash add <itemId>` and `/trash remove <itemId>` to manage your auto-trash list via chat.
 - Add `/trash enable [true/false]`, `/trash on`, and `/trash off` for quick enable/disable control.

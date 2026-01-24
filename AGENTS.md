@@ -16,6 +16,7 @@ It applies to the whole repository.
   - Java source under `src/main/java`.
   - UI assets under `src/main/resources`.
   - Extracted runtime files under `run/runtime/<version>/` for reference only, including decompiled server classes and `Assets.zip` contents.
+  - Decompiled sources under `run/decompiled/` for reference only.
 - Agents may modify:
   - Project files under the repository root, excluding runtime/cache/output folders.
 - Agents must never:
@@ -45,6 +46,7 @@ It applies to the whole repository.
 - **TrashNotifyCommand.java** - `/trash notify [true/false]` toggles auto-trash notifications.
 - **TrashOnCommand.java** - `/trash on` enables auto-trash.
 - **TrashOffCommand.java** - `/trash off` disables auto-trash.
+- **BinCommand.java** - `/bin` opens a temporary one-slot trash bin.
 
 ## UI Resources
 - UI page: `src/main/resources/Common/UI/Custom/Pages/AutoTrashConfigPage.ui`.

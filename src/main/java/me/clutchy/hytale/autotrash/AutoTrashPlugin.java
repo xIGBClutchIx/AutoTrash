@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
+import me.clutchy.hytale.autotrash.command.BinCommand;
 import me.clutchy.hytale.autotrash.command.TrashCommand;
 import me.clutchy.hytale.autotrash.settings.AutoTrashPlayerSettings;
 import me.clutchy.hytale.autotrash.system.AutoTrashSystem;
@@ -41,6 +42,7 @@ public class AutoTrashPlugin extends JavaPlugin {
         this.settingsComponentType = this.getEntityStoreRegistry().registerComponent(AutoTrashPlayerSettings.class, "AutoTrash", AutoTrashPlayerSettings.CODEC);
         AutoTrashSystem.setSettingsComponentType(settingsComponentType);
         getEventRegistry().registerGlobal(LivingEntityInventoryChangeEvent.class, AutoTrashSystem::handleInventoryChange);
+        getCommandRegistry().registerCommand(new BinCommand());
         getCommandRegistry().registerCommand(new TrashCommand(settingsComponentType));
     }
 }
