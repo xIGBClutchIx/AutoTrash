@@ -50,6 +50,7 @@ hytaleManifest {
 
     main.set('me.clutchy.hytale.autotrash.AutoTrashPlugin')
     includesAssetPack.set(true)
+    serverVersion.set('*')
 }
 
 // Location of generated manifest output.
