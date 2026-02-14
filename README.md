@@ -62,10 +62,10 @@ Click any item in your trash list to remove it.
 
 ## Building
 
-Provision runtime (required before building or inspecting server APIs):
+Provision the local dev server (required before running the server locally):
 
 ```bash
-./gradlew runHytale
+./gradlew setupServer
 ```
 
 Manifest generation happens during builds and is packaged automatically (`build/generated/manifestfactory/manifest.json`).
@@ -88,7 +88,7 @@ Output JAR will be in `build/libs/`.
 
 - Hytale Server with plugin support
 - Java 25 toolchain (or compatible JDK for Gradle toolchains)
-- Runtime provisioned via `./gradlew runHytale` (produces `run/runtime/<version>/Server/HytaleServer.jar` and `run/runtime/<version>/Assets.zip`)
+- Dev server provisioned via `./gradlew setupServer` (created under `devserver/`)
 
 ## License
 

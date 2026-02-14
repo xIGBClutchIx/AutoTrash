@@ -2,8 +2,7 @@ plugins {
     id 'java'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
     id 'com.diffplug.spotless' version '6.25.0'
-    id 'io.moonlightdevelopment.runhytale' version '1.0.1'
-    id 'io.moonlightdevelopment.manifestfactory' version '1.0.0'
+    id "dev.scaffoldit" version "0.2.+"
 }
 
 // Project identity used by manifest generation and publishing metadata.
@@ -33,122 +32,29 @@ spotless {
     }
 }
 
-// ManifestFactory configuration for Hytale plugin metadata.
-hytaleManifest {
-    group.set(project.group.toString())
-    name.set(project.name.toString())
-    version.set(project.version.toString())
-    description.set('Auto-trash filter and configuration UI')
+// Hytale plugin configuration.
+hytale {
+    usePatchline("release")
+    useVersion("latest")
 
-    authors {
-        author {
-            name.set('Clutchy')
-            email.set('email@clutchy.me')
-            url.set('https://clutchy.me')
-        }
-    }
-
-    main.set('me.clutchy.hytale.autotrash.AutoTrashPlugin')
-    includesAssetPack.set(true)
-    serverVersion.set('*')
-}
-
-// Location of generated manifest output.
-def generatedManifestDir = layout.buildDirectory.dir('generated/manifestfactory')
-
-// Error message used when runtime is missing.
-def runtimeMissingMessage = 'Hytale runtime not found. Run ./gradlew runHytale to provision it.'
-
-// Resolve the newest available runtime HytaleServer.jar in run/runtime/<version>/Server/.
-def hytaleServerJar = providers.provider {
-    def runtimeDir = file("$projectDir/run/runtime")
-    if (!runtimeDir.exists()) {
-        return null
-    }
-
-    def serverJarCandidates = fileTree(runtimeDir) {
-        include '**/Server/HytaleServer.jar'
-    }.files
-
-    if (serverJarCandidates.isEmpty()) {
-        return null
-    }
-
-    def compareVersions = { String left, String right ->
-        def leftParsed = org.gradle.util.VersionNumber.parse(left)
-        def rightParsed = org.gradle.util.VersionNumber.parse(right)
-        if (leftParsed == org.gradle.util.VersionNumber.UNKNOWN
-                && rightParsed == org.gradle.util.VersionNumber.UNKNOWN) {
-            return left <=> right
-        }
-        if (leftParsed == org.gradle.util.VersionNumber.UNKNOWN) {
-            return -1
-        }
-        if (rightParsed == org.gradle.util.VersionNumber.UNKNOWN) {
-            return 1
-        }
-        return leftParsed <=> rightParsed
-    }
-
-    serverJarCandidates.sort { left, right ->
-        compareVersions(left.parentFile.parentFile.name, right.parentFile.parentFile.name)
-    }.last()
-}
-
-// Include the generated manifest in the main resources output.
-sourceSets {
-    main {
-        resources {
-            srcDir(generatedManifestDir)
-        }
+    manifest {
+        Group = project.group
+        Name = project.name
+        Version = project.version
+        Main = "me.clutchy.hytale.autotrash.AutoTrashPlugin"
+        Description = "Auto-trash filter and configuration UI"
+        Authors = [[
+            Name: "Clutchy",
+            Email: "email@clutchy.me",
+            Url: "https://clutchy.me"
+        ]]
+        IncludesAssetPack = true
+        ServerVersion = "*"
     }
 }
 
-// Compile against the runtime-provisioned server jar.
-dependencies {
-    implementation(files({ hytaleServerJar.getOrNull() }))
-}
-
-// Fail builds if compile/runtime classpaths resolve without a runtime.
-configurations.compileClasspath.incoming.beforeResolve {
-    if (hytaleServerJar.getOrNull() == null) {
-        throw new GradleException(runtimeMissingMessage)
-    }
-}
-
-configurations.runtimeClasspath.incoming.beforeResolve {
-    if (hytaleServerJar.getOrNull() == null) {
-        throw new GradleException(runtimeMissingMessage)
-    }
-}
-
-// Ensure manifest generation is available during resource processing.
-tasks.named('processResources') {
-    dependsOn('generateHytaleManifest')
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-// Keep sources jar focused on Java sources.
-tasks.named('sourcesJar') {
-    dependsOn('generateHytaleManifest')
-    from(sourceSets.main.allJava)
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    exclude('manifest.json')
-}
-
-// Include license in the output jar.
-tasks.named('jar') {
-    from('LICENSE')
-}
-
-
-// Configure runHytale to use either the placeholder or the real jar.
-gradle.projectsEvaluated {
-    tasks.named('runHytale') {
-        dependsOn.clear()
-        outputs.upToDateWhen { false }
-        outputs.cacheIf { false }
-        dependsOn(tasks.named('build'))
-        modJar.set(tasks.named('jar').flatMap { it.archiveFile })
+tasks.named('jar', Jar) {
+    from(layout.projectDirectory.file('LICENSE')) {
+        into('')
     }
 }

@@ -11,8 +11,7 @@
       ],
       "args": "runHytale",
       "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "noDebug": true
+      "console": "integratedTerminal"
     }
   ]
 }
