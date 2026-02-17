@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5 - 2026-02-17
+- Bump manifest `ServerVersion` to `2026.02.17-255364b8e`.
+- Update Gradle manifest generation so `manifest.json` is reliably produced and packaged in the plugin JAR.
+- Simplify server-version resolution and add build output logging for the resolved manifest server version.
+
 ## 1.0.4 - 2026-01-23
 - Add `/bin` command to open a temporary one-slot trash bin for quick item disposal.
 
