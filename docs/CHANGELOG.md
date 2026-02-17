@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6 - 2026-02-17
+- Add in-menu confirmation for adding held items to auto-trash, with item icon/name preview, explicit confirm/cancel actions, and updated UI copy/layout for the confirmation row.
+- Include CurseForge update-checker metadata in the generated `manifest.json`.
+
 ## 1.0.5 - 2026-02-17
 - Bump manifest `ServerVersion` to `2026.02.17-255364b8e`.
 - Update Gradle manifest generation so `manifest.json` is reliably produced and packaged in the plugin JAR.

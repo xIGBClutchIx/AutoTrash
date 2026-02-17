@@ -7,7 +7,7 @@ plugins {
 
 // Project identity used by manifest generation and publishing metadata.
 group = 'me.clutchy.hytale'
-version = '1.0.5'
+version = '1.0.6'
 
 // Cache the resolved server version so manifest configuration and generation
 // share one lookup and one log line.
@@ -39,7 +39,7 @@ def resolveServerVersion = {
     return resolvedServerVersion
 }
 
-def pluginManifest = {
+def hytaleDslManifest = {
     return [
         Group: project.group.toString(),
         Name: project.name,
@@ -55,6 +55,14 @@ def pluginManifest = {
         DisabledByDefault: false,
         ServerVersion: resolveServerVersion()
     ]
+}
+
+def generatedPluginManifest = {
+    def manifest = new LinkedHashMap(hytaleDslManifest())
+    manifest.UpdateChecker = [
+        CurseForge: "1434731"
+    ]
+    return manifest
 }
 
 // Resolve plugins and formatting dependencies.
@@ -86,7 +94,7 @@ hytale {
     useVersion("latest")
 
     manifest {
-        pluginManifest().each { key, value ->
+        hytaleDslManifest().each { key, value ->
             delegate."$key" = value
         }
     }
@@ -103,7 +111,7 @@ tasks.register('generatePluginManifest') {
         def manifestFile = generatedManifestFile.get().asFile
         manifestFile.parentFile.mkdirs()
         manifestFile.text = groovy.json.JsonOutput.prettyPrint(
-            groovy.json.JsonOutput.toJson(pluginManifest())
+            groovy.json.JsonOutput.toJson(generatedPluginManifest())
         ) + '\n'
     }
 }

@@ -169,15 +169,62 @@ $C.@DecoratedContainer {
       }
 
       Label #ItemHelp {
-        Text: "Hold an item and press add. Click a slot to remove.";
+        Text: "Hold an item and press add. Confirm to set it as trash. Confirm also trashes held stack if auto-trash is on.";
         Style: (FontSize: 12, TextColor: #6e7da1);
         Anchor: (Bottom: 8);
+      }
+
+      Group #ItemConfirm {
+        Anchor: (Left: 0, Bottom: 8, Right: 0, Height: 76);
+        Background: (TexturePath: "../Common/ContainerPanelPatch.png", Border: 4);
+        Padding: (Full: 8);
+        Visible: false;
+
+        Group {
+          Anchor: (Left: 0, Top: 2, Width: 52, Height: 52);
+          Background: #0f141b;
+          Padding: 2;
+
+          ItemSlot #ItemConfirmSlot {
+            Anchor: (Full: 0);
+            ShowQualityBackground: true;
+            ShowQuantity: false;
+          }
+        }
+
+        Label #ItemConfirmTitle {
+          Text: "Confirm trash item";
+          Style: (RenderBold: true, TextColor: #878e9c, FontSize: 12);
+          Anchor: (Left: 62, Top: 2, Right: 190);
+        }
+
+        Label #ItemConfirmName {
+          Text: "";
+          Style: $C.@DefaultLabelStyle;
+          Anchor: (Left: 62, Top: 22, Right: 190);
+        }
+
+        Label #ItemConfirmHint {
+          Text: "Set this item as auto-trash?";
+          Style: (FontSize: 11, TextColor: #6e7da1);
+          Anchor: (Left: 62, Top: 42, Right: 190);
+        }
+
+        $C.@SmallSecondaryTextButton #ItemConfirmButton {
+          Anchor: (Top: 8, Right: 116, Width: 108, Height: 28);
+          Text: "CONFIRM";
+        }
+
+        $C.@SmallSecondaryTextButton #ItemCancelButton {
+          Anchor: (Top: 8, Right: 0, Width: 108, Height: 28);
+          Text: "CANCEL";
+        }
       }
 
       Group #ItemList {
         LayoutMode: TopScrolling;
         ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        Anchor: (Height: 300);
+        Anchor: (Height: 270);
 
         Padding: (Top: 8, Left: 8, Right: 8);
 

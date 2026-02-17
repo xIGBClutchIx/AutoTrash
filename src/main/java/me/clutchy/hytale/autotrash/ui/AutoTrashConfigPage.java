@@ -37,6 +37,12 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
 
     /** Cached settings component for the player. */
     private AutoTrashPlayerSettings playerSettings;
+    /** Pending item id awaiting confirmation in the UI. */
+    private String pendingItemId;
+    /** Pending item translation key for localized display in confirmation UI. */
+    private String pendingItemTranslationKey;
+    /** Pending item display name shown in confirmation UI. */
+    private String pendingItemName;
 
     /**
      * Creates the configuration page.
@@ -72,6 +78,7 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
         commandBuilder.set("#EnabledRow #CheckBox.Value", this.playerSettings.isEnabled());
         commandBuilder.set("#NotifyRow #CheckBox.Value", this.playerSettings.isNotify());
         buildFilterList(commandBuilder, profile.getExactItems());
+        buildPendingAddConfirmation(commandBuilder);
 
         eventBuilder.addEventBinding(CustomUIEventBindingType.ValueChanged, "#ProfileDropdown",
                 EventData.of(PageEventData.KEY_ACTION, PageEventData.ACTION_SWITCH_PROFILE).append(PageEventData.KEY_PROFILE, "#ProfileDropdown.Value"), false);
@@ -90,6 +97,10 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
         eventBuilder.addEventBinding(CustomUIEventBindingType.ValueChanged, "#NotifyRow #CheckBox",
                 EventData.of(PageEventData.KEY_ACTION, PageEventData.ACTION_TOGGLE_NOTIFY).append(PageEventData.KEY_VALUE, "#NotifyRow #CheckBox.Value"), false);
         eventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#ItemAddButton", EventData.of(PageEventData.KEY_ACTION, PageEventData.ACTION_ADD_EXACT));
+        eventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#ItemConfirmButton",
+                EventData.of(PageEventData.KEY_ACTION, PageEventData.ACTION_CONFIRM_ADD_EXACT), false);
+        eventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#ItemCancelButton",
+                EventData.of(PageEventData.KEY_ACTION, PageEventData.ACTION_CANCEL_ADD_EXACT), false);
 
         rebuildListBindings(eventBuilder, profile);
     }
@@ -125,6 +136,9 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
                     return;
                 }
                 changed = this.playerSettings.activateProfile(data.profileName);
+                if (changed) {
+                    clearPendingAdd();
+                }
             }
             case PageEventData.ACTION_ADD_PROFILE -> {
                 AutoTrashPlayerSettings.ProfileActionResult result = this.playerSettings.createProfile(data.profileName);
@@ -168,22 +182,48 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
                 ItemStack held = player.getInventory().getItemInHand();
                 if (held == null || ItemStack.isEmpty(held)) {
                     player.sendMessage(Message.raw("Hold an item to add it to the auto-trash list."));
+                    clearPendingAdd();
                     rebuild();
                     return;
                 }
-                String itemId = held.getItemId();
-                String[] current = profile.getExactItems();
-                String[] updated = updateArray(current, true, itemId);
-                if (updated != current) {
-                    profile.setExactItems(updated);
-                    changed = true;
+                this.pendingItemId = held.getItemId();
+                this.pendingItemTranslationKey = resolveItemTranslationKey(held);
+                this.pendingItemName = formatItemName(this.pendingItemId);
+                rebuild();
+                return;
+            }
+            case PageEventData.ACTION_CONFIRM_ADD_EXACT -> {
+                if (this.pendingItemId == null || this.pendingItemId.isBlank()) {
+                    player.sendMessage(Message.raw("Hold an item and press add first."));
+                    rebuild();
+                    return;
                 }
-                if (this.playerSettings.isEnabled()) {
+
+                String[] current = profile.getExactItems();
+                String[] updated = updateArray(current, true, this.pendingItemId);
+                if (updated == current) {
+                    player.sendMessage(Message.raw("That item is already in this profile."));
+                    clearPendingAdd();
+                    rebuild();
+                    return;
+                }
+
+                profile.setExactItems(updated);
+                changed = true;
+
+                ItemStack held = player.getInventory().getItemInHand();
+                if (this.playerSettings.isEnabled() && held != null && !ItemStack.isEmpty(held) && this.pendingItemId.equals(held.getItemId())) {
                     player.getInventory().getHotbar().removeItemStackFromSlot(player.getInventory().getActiveHotbarSlot());
                     if (this.playerSettings.isNotify()) {
                         sendTrashNotification(player, held);
                     }
                 }
+                clearPendingAdd();
+            }
+            case PageEventData.ACTION_CANCEL_ADD_EXACT -> {
+                clearPendingAdd();
+                rebuild();
+                return;
             }
             case PageEventData.ACTION_REMOVE_EXACT -> {
                 String itemId = data.itemId;
@@ -206,6 +246,22 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
         if (changed) {
             rebuild();
         }
+    }
+
+    private void buildPendingAddConfirmation(@NonNullDecl UICommandBuilder commandBuilder) {
+        boolean hasPending = this.pendingItemId != null && !this.pendingItemId.isBlank();
+        commandBuilder.set("#ItemConfirm.Visible", hasPending);
+        if (!hasPending) {
+            return;
+        }
+
+        commandBuilder.set("#ItemConfirmSlot.ItemId", this.pendingItemId);
+        if (this.pendingItemTranslationKey != null && !this.pendingItemTranslationKey.isBlank()) {
+            commandBuilder.set("#ItemConfirmName.Text", Message.translation(this.pendingItemTranslationKey));
+            return;
+        }
+
+        commandBuilder.set("#ItemConfirmName.Text", this.pendingItemName);
     }
 
     /**
@@ -361,6 +417,60 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
         return new ArrayList<>(Arrays.asList(values));
     }
 
+    private void clearPendingAdd() {
+        this.pendingItemId = null;
+        this.pendingItemTranslationKey = null;
+        this.pendingItemName = null;
+    }
+
+    private static String resolveItemTranslationKey(@NonNullDecl ItemStack itemStack) {
+        if (itemStack.getItem() == null) {
+            return null;
+        }
+        String translationKey = itemStack.getItem().getTranslationKey();
+        if (translationKey == null || translationKey.isBlank()) {
+            return null;
+        }
+        return translationKey;
+    }
+
+    private static String formatItemName(@NonNullDecl String itemId) {
+        String trimmed = itemId.trim();
+        if (trimmed.isEmpty()) {
+            return "Unknown item";
+        }
+
+        int namespaceIndex = trimmed.lastIndexOf(':');
+        if (namespaceIndex >= 0 && namespaceIndex + 1 < trimmed.length()) {
+            trimmed = trimmed.substring(namespaceIndex + 1);
+        }
+
+        trimmed = trimmed.replace('_', ' ').replace('-', ' ').trim();
+        if (trimmed.isEmpty()) {
+            return itemId;
+        }
+
+        String[] words = trimmed.split("\\s+");
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            if (!builder.isEmpty()) {
+                builder.append(' ');
+            }
+            builder.append(Character.toUpperCase(word.charAt(0)));
+            if (word.length() > 1) {
+                builder.append(word.substring(1).toLowerCase());
+            }
+        }
+
+        if (!builder.isEmpty()) {
+            return builder.toString();
+        }
+        return itemId;
+    }
+
     /**
      * Event payload for the UI page.
      */
@@ -399,6 +509,14 @@ public final class AutoTrashConfigPage extends InteractiveCustomUIPage<AutoTrash
          * Action id for adding an exact item.
          */
         public static final String ACTION_ADD_EXACT = "AddExact";
+        /**
+         * Action id for confirming an exact item add.
+         */
+        public static final String ACTION_CONFIRM_ADD_EXACT = "ConfirmAddExact";
+        /**
+         * Action id for cancelling an exact item add.
+         */
+        public static final String ACTION_CANCEL_ADD_EXACT = "CancelAddExact";
         /**
          * Action id for removing an exact item.
          */
