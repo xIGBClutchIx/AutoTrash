@@ -7,7 +7,7 @@ plugins {
 
 // Project identity used by manifest generation and publishing metadata.
 group = 'me.clutchy.hytale'
-version = '1.0.4'
+version = '1.0.5'
 
 // Resolve plugins and formatting dependencies.
 repositories {
