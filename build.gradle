@@ -9,6 +9,21 @@ plugins {
 group = 'me.clutchy.hytale'
 version = '1.0.5'
 
+def pluginManifest = [
+    Group: project.group.toString(),
+    Name: project.name,
+    Version: project.version.toString(),
+    Main: "me.clutchy.hytale.autotrash.AutoTrashPlugin",
+    Description: "Auto-trash filter and configuration UI",
+    Authors: [[
+        Name: "Clutchy",
+        Email: "email@clutchy.me",
+        Url: "https://clutchy.me"
+    ]],
+    IncludesAssetPack: true,
+    ServerVersion: "*"
+]
+
 // Resolve plugins and formatting dependencies.
 repositories {
     mavenCentral()
@@ -38,23 +53,39 @@ hytale {
     useVersion("latest")
 
     manifest {
-        Group = project.group
-        Name = project.name
-        Version = project.version
-        Main = "me.clutchy.hytale.autotrash.AutoTrashPlugin"
-        Description = "Auto-trash filter and configuration UI"
-        Authors = [[
-            Name: "Clutchy",
-            Email: "email@clutchy.me",
-            Url: "https://clutchy.me"
-        ]]
-        IncludesAssetPack = true
-        ServerVersion = "*"
+        pluginManifest.each { key, value ->
+            delegate."$key" = value
+        }
+    }
+}
+
+def generatedManifestFile = layout.buildDirectory.file('generated/manifestfactory/manifest.json')
+
+tasks.register('generatePluginManifest') {
+    description = 'Generate manifest.json used by the plugin jar packaging.'
+    group = 'build'
+    outputs.file(generatedManifestFile)
+
+    doLast {
+        def manifestFile = generatedManifestFile.get().asFile
+        manifestFile.parentFile.mkdirs()
+        manifestFile.text = groovy.json.JsonOutput.prettyPrint(
+            groovy.json.JsonOutput.toJson(pluginManifest)
+        ) + '\n'
     }
 }
 
 tasks.named('jar', Jar) {
     from(layout.projectDirectory.file('LICENSE')) {
+        into('')
+    }
+}
+
+tasks.named('processResources', Copy) {
+    dependsOn(tasks.named('generatePluginManifest'))
+    dependsOn(tasks.matching { it.name == 'generateManifest' })
+
+    from(generatedManifestFile) {
         into('')
     }
 }
