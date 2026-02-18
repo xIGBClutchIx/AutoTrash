@@ -33,6 +33,7 @@ Click any item in your trash list to remove it.
 
 - CurseForge: https://www.curseforge.com/hytale/mods/auto-trash
 - Modtale: https://modtale.net/mod/auto-trash
+- Orbis.place: https://www.orbis.place/mod/auto-trash
 
 ## Installation
 
